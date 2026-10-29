@@ -1,17 +1,18 @@
-import React from 'react'
-import './App.css'
-import { useState } from 'react'
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import './App.css';
+import type { WeatherData } from './Weather';
 
 const App = () => {
-  const [name, setName] = useState('')
-  const [weather, setWeather] = useState(null)
-  const [error, setError] = useState('')
+  const [name, setName] = useState('');
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  function handleChange(e) {
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
     setName(e.target.value)
   }
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
 
     if (!name.trim()) {
@@ -34,21 +35,26 @@ const App = () => {
         throw new Error('Không thể lấy dữ liệu thời tiết!')
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as WeatherData;
       setWeather(data)
-    } catch (err) {
-      setError(err.message)
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Đã xảy ra lỗi không xác định!');
+      }
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
   return (
-    <div class="border-3 p-10">
-      <div class="flex flex-col gap-5">
+    <div className="border-3 p-10">
+      <div className="flex flex-col gap-5">
         <p> Vui lòng nhập vị trí của bạn để xem thông tin thời tiết: </p>
-        <form class="flex flex-col gap-2" onSubmit={handleSubmit}>
-          <div class="flex flex-row">
+        
+        <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+          <div className="flex flex-row">
             <label>
               {' '}
               Vị trí:
@@ -56,15 +62,23 @@ const App = () => {
                 type="text"
                 value={name}
                 onChange={handleChange}
-                class="border-2"
+                className="border-2"
               />
             </label>
           </div>
-          <div class="flex flex-row">
-            <p class="basis-64"></p>
-            <input class="border-2" type="submit" />
-            <p class="basis-64"></p>
+
+          <div className="flex flex-row">
+            <p className="basis-64"></p>
+            <button
+              className="border-2"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Đang tải...' : 'Xem thời tiết'}
+            </button>
+            <p className="basis-64"></p>
           </div>
+          
         </form>
 
         {error && <p className="text-red-500">{error}</p>}
